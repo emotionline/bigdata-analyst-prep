@@ -1,3 +1,4 @@
+# 20
 # 정답 열은 amount이며 record_id는 행을 구분하는 식별자입니다.
 # train['amount']를 정답 y로, train에서 record_id와 amount를 제외한 모든 열을 입력 X로 만드세요.
 # train_test_split에 X와 y를 함께 전달해 학습용(train) 75%, 검증용(validation) 25%로 나누세요.
