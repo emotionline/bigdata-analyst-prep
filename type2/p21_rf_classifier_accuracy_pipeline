@@ -1,0 +1,57 @@
+# 21
+# subscribe는 정답(0: 미가입, 1: 가입), record_id는 행 식별자입니다.
+# y는 train['subscribe'], X는 train에서 record_id와 subscribe를 제외한 모든 열로 만드세요.
+# X와 y를 함께 train_test_split으로 학습용 75%, 검증용 25%로 나누세요.
+# test_size=0.25, random_state=42로 지정하고 X_train, X_valid, y_train, y_valid 순서로 받으세요.
+# 정답 비율을 유지하도록 stratify=y를 지정하세요.
+# X_train의 숫자 열별 중앙값으로 두 자료의 숫자 결측값을 채우세요.
+# 두 자료의 문자 결측값은 'unknown'으로 채우세요.
+# 두 자료의 문자 열을 각각 pd.get_dummies(..., dtype=int, drop_first=False)로 원핫 인코딩하세요.
+# X_valid를 X_train의 열 이름·순서에 맞추고, 없는 열은 0으로 채우세요.
+# 기본 설정: RandomForestClassifier(n_estimators=70, max_depth=6, min_samples_leaf=3, random_state=42, n_jobs=1)
+# 변경 설정: RandomForestClassifier(n_estimators=70, max_depth=3, min_samples_leaf=3, random_state=42, n_jobs=1)
+# 같은 X_train, y_train에서 두 모델을 각각 학습하고 같은 X_valid를 예측하세요.
+# 기본 설정의 검증 정확도, 변경 설정의 검증 정확도를 이 순서로 round(..., 4)로 한 줄씩 출력하세요.
+
+# 나머지 모델 옵션은 기본값입니다. 최종 출력값만 반올림하세요.
+
+import pandas as pd
+train = pd.read_csv('/data/p21_train.csv')
+
+y = train['subscribe']
+X = train.drop(columns = ['record_id', 'subscribe'])
+
+from sklearn.model_selection import train_test_split
+X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.25, random_state=42, stratify=y)
+
+num_cols = X_train.select_dtypes(include='number').columns
+cat_cols = X_train.select_dtypes(exclude='number').columns
+
+median = X_train[num_cols].median()
+X_train[num_cols] = X_train[num_cols].fillna(median)
+X_valid[num_cols] = X_valid[num_cols].fillna(median)
+
+X_train[cat_cols] = X_train[cat_cols].fillna('unknown')
+X_valid[cat_cols] = X_valid[cat_cols].fillna('unknown')
+
+X_train = pd.get_dummies(X_train, dtype=int, drop_first=False)
+X_valid = pd.get_dummies(X_valid, dtype=int, drop_first=False)
+X_valid = X_valid.reindex(columns = X_train.columns, fill_value = 0)
+
+from sklearn.ensemble import RandomForestClassifier
+
+model1 = RandomForestClassifier(n_estimators=70, max_depth=6, min_samples_leaf=3, random_state=42, n_jobs=1)
+model2 = RandomForestClassifier(n_estimators=70, max_depth=3, min_samples_leaf=3, random_state=42, n_jobs=1)
+
+model1.fit(X_train, y_train)
+model2.fit(X_train, y_train)
+pred_1 = model1.predict(X_valid)
+pred_2 = model2.predict(X_valid)
+
+from sklearn.metrics import accuracy_score
+
+# print([x for x in dir(sklearn.metrics) if 'accuracy' in x])
+
+answer_1 = accuracy_score( y_valid, pred_1)
+answer_2 = accuracy_score(y_valid, pred_2)
+print(round(answer_1, 4), round(answer_2, 4), sep='\n')
